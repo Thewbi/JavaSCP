@@ -3,7 +3,12 @@ package de.wfbsoftware;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DefaultWindowListener implements WindowListener {
+	
+	private static final Logger logger = LoggerFactory.getLogger(DefaultWindowListener.class);
 
 	private FileSystemListController leftFileSystemListController;
 

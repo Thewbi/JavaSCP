@@ -6,8 +6,14 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.wfbsoftware.Main;
 
 public class DefaultFileSystemNode implements FileSystemNode {
+	
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 	
 	private String pwd;
 	
@@ -21,14 +27,14 @@ public class DefaultFileSystemNode implements FileSystemNode {
 	
 	public void outputChildren() {
 		if (CollectionUtils.isEmpty(children)) {
-			System.out.println("no children");
+			logger.info("no children");
 			return;
 		}
 		
 		sortChildren();
 		
 		children.stream().forEach(n -> {
-			System.out.println("  " + n.getFileSystemObjectName());
+			logger.info("  " + n.getFileSystemObjectName());
 		});
 	}
 

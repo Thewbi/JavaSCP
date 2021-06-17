@@ -5,6 +5,8 @@ import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
@@ -14,11 +16,14 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 
+import de.wfbsoftware.Main;
 import de.wfbsoftware.filesystem.DefaultFileSystemNode;
 import de.wfbsoftware.filesystem.FileSystemNode;
 import de.wfbsoftware.filesystem.FileSystemObjectType;
 
 public class JSSHService implements SSHService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public Session connect(final String host, final int port, final String username, final String password) throws JSchException {
 
@@ -37,7 +42,7 @@ public class JSSHService implements SSHService {
 			session.connect();
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			if (session != null) {
 				session.disconnect();
 				session = null;
@@ -84,7 +89,7 @@ public class JSSHService implements SSHService {
 		resultFileSystemNode.setType(FileSystemObjectType.FOLDER);
 		
 		// lpwd = local pwd = pwd on local machine instead of remote pwd
-//		System.out.println(channel.lpwd());
+//		logger.info(channel.lpwd());
 		
 		// pwd = remote pwd
 		final String pwd = channel.pwd();
@@ -98,7 +103,7 @@ public class JSSHService implements SSHService {
 			LsEntry entry = (LsEntry) filelist.get(i);
 			
 			String filename = entry.getFilename();
-			//System.out.println(filename);
+			//logger.info(filename);
 			
 			FileSystemNode child = new DefaultFileSystemNode();
 			resultFileSystemNode.getChildren().add(child);
@@ -151,7 +156,7 @@ public class JSSHService implements SSHService {
 	private void execList(Session session) throws JSchException, InterruptedException {
 		ChannelExec channel = (ChannelExec) session.openChannel("exec");
 		if (channel == null) {
-			System.out.println("channel is null!");
+			logger.info("channel is null!");
 			return;
 		}
 
@@ -166,7 +171,7 @@ public class JSSHService implements SSHService {
 		}
 
 		String responseString = new String(responseStream.toByteArray());
-		System.out.println(responseString);
+		logger.info(responseString);
 
 		channel.disconnect();
 	}
@@ -177,7 +182,7 @@ public class JSSHService implements SSHService {
 		channel.connect();
 		
 		final String objectName = fileSystemNode.getPwd();
-		System.out.println(objectName);
+		logger.info(objectName);
 		
 		channel.rm(objectName);
 		
@@ -191,7 +196,7 @@ public class JSSHService implements SSHService {
 		
 		final String objectName = toFileSystemNode.getPwd();
 		
-		System.out.println(objectName);
+		logger.info(objectName);
 		
 		channel.put(fromFileSystemNode.getPwd(), toFileSystemNode.getPwd());
 		

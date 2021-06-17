@@ -15,8 +15,9 @@ import javax.swing.event.ListSelectionListener;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 import de.wfbsoftware.filesystem.DefaultFileSystemNode;
@@ -26,6 +27,8 @@ import de.wfbsoftware.filesystem.FileSystemService;
 
 public class FileSystemListController extends MouseAdapter implements ListSelectionListener, ActionListener {
 
+	private static final Logger logger = LoggerFactory.getLogger(FileSystemListController.class);
+	
 	private FileSystemService fileSystemService;
 
 	private Session session;
@@ -58,7 +61,7 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 			loadListModel();
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 	}
 
@@ -78,31 +81,31 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 		if (evt.getClickCount() == 2) {
 			// Double-click detected
 			int index = list.locationToIndex(evt.getPoint());
-//            System.out.println("DoubleCLick at index = " + index);
+//            logger.info("DoubleCLick at index = " + index);
 			FileSystemNode fileSystemNode = (FileSystemNode) listModel.getElementAt(index);
 			try {
 				performAction(fileSystemNode);
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 		} else if (evt.getClickCount() == 3) {
 			// Triple-click detected
 			int index = list.locationToIndex(evt.getPoint());
-//            System.out.println("TripleCLick at index = " + index);
+//            logger.info("TripleCLick at index = " + index);
 		}
 	}
 
 	private void performAction(FileSystemNode fileSystemNode) throws Exception {
-		System.out.println("User selected: \"" + fileSystemNode.getFileSystemObjectName() + "\"");
+		logger.info("User selected: \"" + fileSystemNode.getFileSystemObjectName() + "\"");
 		if (StringUtils.equalsAnyIgnoreCase(fileSystemNode.getFileSystemObjectName(), ".")) {
-			System.out.println("No Operation!");
+			logger.info("No Operation!");
 		} else if (StringUtils.equalsAnyIgnoreCase(fileSystemNode.getFileSystemObjectName(), "..")) {
-			System.out.println("Going Up");
+			logger.info("Going Up");
 			up(fileSystemNode);
 		} else if (fileSystemNode.getType() == FileSystemObjectType.FILE) {
-			System.out.println("File selected! No Operation!");
+			logger.info("File selected! No Operation!");
 		} else {
-			System.out.println("Navigation into");
+			logger.info("Navigation into");
 			down(fileSystemNode);
 		}
 	}
@@ -116,7 +119,7 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 
 	private void up(FileSystemNode fileSystemNode) throws Exception {
 		if (currentFileSystemNode.getParent() == null) {
-			System.out.println("Root reached! Has no parrent! Cannot go up!");
+			logger.info("Root reached! Has no parrent! Cannot go up!");
 			return;
 		}
 		currentFileSystemNode = fileSystemService.up(getSession(), currentFileSystemNode);
@@ -142,7 +145,7 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 
 			if (e.getValueIsAdjusting() == false) {
 				selectedFileSystemNode = dest;
-				System.out.println(selectedFileSystemNode);
+				logger.info(selectedFileSystemNode.toString());
 			}
 		}
 	}
@@ -155,31 +158,31 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 		if (selectedFileSystemNode == null) {
 			return;
 		} else if (StringUtils.equalsAnyIgnoreCase(selectedFileSystemNode.getFileSystemObjectName(), ".")) {
-			System.out.println("No Operation!");
+			logger.info("No Operation!");
 			return;
 		} else if (StringUtils.equalsAnyIgnoreCase(selectedFileSystemNode.getFileSystemObjectName(), "..")) {
-			System.out.println("No Operation!");
+			logger.info("No Operation!");
 			return;
 		}
-		System.out.println(actionEvent);
+		logger.info(actionEvent.toString());
 		if (StringUtils.equalsIgnoreCase(actionEvent.getActionCommand(), "Delete")) {
 
 			int userSelection = JOptionPane.showConfirmDialog(null, "Really delete? " + selectedFileSystemNode);
-			System.out.println(userSelection);
+			logger.info("" + userSelection);
 
 			if (userSelection == 0) {
-				System.out.println("Delete " + selectedFileSystemNode);
+				logger.info("Delete " + selectedFileSystemNode);
 				try {
 					delete(selectedFileSystemNode);
 
 					// rebuild the tree, this time without the deleted file
 					loadListModel();
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}
 			}
 		} else if (StringUtils.equalsIgnoreCase(actionEvent.getActionCommand(), "Transfer")) {
-			System.out.println("Transfer " + selectedFileSystemNode);
+			logger.info("Transfer " + selectedFileSystemNode);
 
 			if (CollectionUtils.isNotEmpty(eventListener)) {
 				for (EventListener tempEventListener : eventListener) {
@@ -191,14 +194,14 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 			try {
 				loadListModel();
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 		}
 	}
 
 	private void delete(FileSystemNode fileSystemNode) throws Exception {
 		if (fileSystemNode.getType() != FileSystemObjectType.FILE) {
-			System.out.println("Selected node is not a file! Only files can be deleted!");
+			logger.info("Selected node is not a file! Only files can be deleted!");
 			return;
 		}
 		fileSystemService.delete(getSession(), fileSystemNode);
@@ -211,7 +214,7 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 		}
 	}
