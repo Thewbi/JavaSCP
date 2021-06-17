@@ -85,4 +85,9 @@ public class WindowsFileSystemService implements FileSystemService {
 		return list(session, fileSystemNode);
 	}
 
+	@Override
+	public void delete(Session session, FileSystemNode fileSystemNode) throws Exception {
+		throw new RuntimeException("Not implemented yet!");
+	}
+
 }

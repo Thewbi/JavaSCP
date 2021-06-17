@@ -171,4 +171,32 @@ public class JSSHService implements SSHService {
 		channel.disconnect();
 	}
 
+	@Override
+	public void delete(Session session, FileSystemNode fileSystemNode) throws JSchException, SftpException {
+		ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
+		channel.connect();
+		
+		final String objectName = fileSystemNode.getPwd();
+		System.out.println(objectName);
+		
+		channel.rm(objectName);
+		
+		channel.disconnect();
+	}
+	
+	@Override
+	public void transfer(Session session, FileSystemNode fromFileSystemNode, FileSystemNode toFileSystemNode) throws JSchException, SftpException {
+		ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
+		channel.connect();
+		
+		final String objectName = toFileSystemNode.getPwd();
+		
+		System.out.println(objectName);
+		
+		channel.put(fromFileSystemNode.getPwd(), toFileSystemNode.getPwd());
+		
+		channel.disconnect();
+		
+	}
+
 }

@@ -19,4 +19,6 @@ public interface SSHService extends FileSystemService {
 	
 	FileSystemNode down(Session session, FileSystemNode fileSystemNode) throws JSchException, SftpException;
 	
+	void transfer(Session session, FileSystemNode fromFileSystemNode, FileSystemNode toFileSystemNode) throws JSchException, SftpException;
+	
 }
