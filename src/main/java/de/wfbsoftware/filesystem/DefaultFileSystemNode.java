@@ -17,7 +17,7 @@ public class DefaultFileSystemNode implements FileSystemNode {
 	
 	private String pwd;
 	
-	private FileSystemObjectType type;
+	private FileSystemObjectType type = FileSystemObjectType.UNKNOWN;
 	
 	private String fileSystemObjectName;
 	

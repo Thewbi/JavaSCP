@@ -22,10 +22,11 @@ import de.wfbsoftware.filesystem.FileSystemNode;
 import de.wfbsoftware.filesystem.FileSystemObjectType;
 
 public class JSSHService implements SSHService {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	public Session connect(final String host, final int port, final String username, final String password) throws JSchException {
+	public Session connect(final String host, final int port, final String username, final String password)
+			throws JSchException {
 
 		Session session = null;
 
@@ -51,14 +52,14 @@ public class JSSHService implements SSHService {
 
 		return session;
 	}
-	
+
 	@Override
 	public void disconnect(Session session) throws JSchException {
 		if (session != null) {
 			session.disconnect();
 		}
 	}
-	
+
 	@Override
 	public FileSystemNode list(Session session, FileSystemNode fileSystemNode) throws JSchException, SftpException {
 		return sftpList(session, fileSystemNode);
@@ -73,69 +74,74 @@ public class JSSHService implements SSHService {
 	 * @throws SftpException
 	 */
 	public FileSystemNode sftpList(Session session, FileSystemNode fileSystemNode) throws JSchException, SftpException {
-		
+
 		if (fileSystemNode.getType() == FileSystemObjectType.FILE) {
 			return null;
 		}
-		
+
 		FileSystemNode resultFileSystemNode = new DefaultFileSystemNode();
-		
+
 		ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
 		channel.connect();
-		
+
 		channel.cd(fileSystemNode.getPwd());
-		
+
 		// type
 		resultFileSystemNode.setType(FileSystemObjectType.FOLDER);
-		
-		// lpwd = local pwd = pwd on local machine instead of remote pwd
-//		logger.info(channel.lpwd());
-		
+
 		// pwd = remote pwd
 		final String pwd = channel.pwd();
 		resultFileSystemNode.setPwd(pwd);
-		
+
 		// children
 		@SuppressWarnings("unchecked")
 		Vector<LsEntry> filelist = channel.ls(".");
 		for (int i = 0; i < filelist.size(); i++) {
-			
+
 			LsEntry entry = (LsEntry) filelist.get(i);
-			
+
 			String filename = entry.getFilename();
-			//logger.info(filename);
-			
+
 			FileSystemNode child = new DefaultFileSystemNode();
 			resultFileSystemNode.getChildren().add(child);
-			
+
 			child.setFileSystemObjectName(filename);
 			child.setParent(resultFileSystemNode);
-			
+
 			if (StringUtils.equalsIgnoreCase(pwd, "/")) {
 				child.setPwd(pwd + filename);
 			} else {
 				child.setPwd(pwd + "/" + filename);
 			}
 			
-			child.setType(entry.getAttrs().isDir() ? FileSystemObjectType.FOLDER : FileSystemObjectType.FILE);
-			
+			FileSystemObjectType type = FileSystemObjectType.UNKNOWN;
+			if (entry.getAttrs().isDir()) {
+				type = FileSystemObjectType.FOLDER;
+			} else if (entry.getAttrs().isLink()) {
+				type = FileSystemObjectType.LINK;
+			} else  {
+				type =  FileSystemObjectType.FILE;
+			} 
+
+			child.setType(type);
+
 		}
-		
+
 		channel.cd("..");
 		final String newPwd = channel.pwd();
-		
+
 		if (!StringUtils.equalsIgnoreCase(newPwd, pwd)) {
 			FileSystemNode parent = new DefaultFileSystemNode();
 			resultFileSystemNode.setParent(parent);
 			parent.setPwd(newPwd);
 			parent.setType(FileSystemObjectType.FOLDER);
 		}
-		
+
 		channel.disconnect();
-		
+
 		return resultFileSystemNode;
 	}
-	
+
 	@Override
 	public FileSystemNode up(Session session, FileSystemNode fileSystemNode) throws JSchException, SftpException {
 		if (fileSystemNode.getParent() == null) {
@@ -143,7 +149,7 @@ public class JSSHService implements SSHService {
 		}
 		return list(session, fileSystemNode.getParent());
 	}
-	
+
 	@Override
 	public FileSystemNode down(Session session, FileSystemNode fileSystemNode) throws JSchException, SftpException {
 		if (fileSystemNode.getType() == FileSystemObjectType.FILE) {
@@ -180,28 +186,35 @@ public class JSSHService implements SSHService {
 	public void delete(Session session, FileSystemNode fileSystemNode) throws JSchException, SftpException {
 		ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
 		channel.connect();
-		
+
 		final String objectName = fileSystemNode.getPwd();
 		logger.info(objectName);
-		
+
 		channel.rm(objectName);
-		
+
 		channel.disconnect();
 	}
-	
+
 	@Override
-	public void transfer(Session session, FileSystemNode fromFileSystemNode, FileSystemNode toFileSystemNode) throws JSchException, SftpException {
+	public void transfer(Session session, FileSystemNode fromFileSystemNode, FileSystemNode toFileSystemNode,
+			boolean fromIsRemote) throws JSchException, SftpException {
 		ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
 		channel.connect();
-		
+
 		final String objectName = toFileSystemNode.getPwd();
-		
+
 		logger.info(objectName);
-		
-		channel.put(fromFileSystemNode.getPwd(), toFileSystemNode.getPwd());
-		
+
+		if (fromIsRemote) {
+			// get the file
+			channel.get(fromFileSystemNode.getPwd(), toFileSystemNode.getPwd());
+		} else {
+			// put the file
+			channel.put(fromFileSystemNode.getPwd(), toFileSystemNode.getPwd());
+		}
+
 		channel.disconnect();
-		
+
 	}
 
 }

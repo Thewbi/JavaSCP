@@ -45,6 +45,12 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 
 	private List<EventListener> eventListener = new ArrayList<>();
 
+	private String transferEventKey;
+
+	public void setTransferEventKey(String transferEventKey) {
+		this.transferEventKey = transferEventKey;
+	}
+
 	/**
 	 * ctor
 	 */
@@ -77,21 +83,18 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 	}
 
 	public void mouseClicked(MouseEvent evt) {
+		@SuppressWarnings("rawtypes")
 		JList list = (JList) evt.getSource();
-		if (evt.getClickCount() == 2) {
-			// Double-click detected
+		
+		// double-click detected
+		if (evt.getClickCount() >= 2) {
 			int index = list.locationToIndex(evt.getPoint());
-//            logger.info("DoubleCLick at index = " + index);
 			FileSystemNode fileSystemNode = (FileSystemNode) listModel.getElementAt(index);
 			try {
 				performAction(fileSystemNode);
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			}
-		} else if (evt.getClickCount() == 3) {
-			// Triple-click detected
-			int index = list.locationToIndex(evt.getPoint());
-//            logger.info("TripleCLick at index = " + index);
 		}
 	}
 
@@ -155,6 +158,7 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 	 */
 	@Override
 	public void actionPerformed(ActionEvent actionEvent) {
+		
 		if (selectedFileSystemNode == null) {
 			return;
 		} else if (StringUtils.equalsAnyIgnoreCase(selectedFileSystemNode.getFileSystemObjectName(), ".")) {
@@ -164,7 +168,9 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 			logger.info("No Operation!");
 			return;
 		}
+		
 		logger.info(actionEvent.toString());
+		
 		if (StringUtils.equalsIgnoreCase(actionEvent.getActionCommand(), "Delete")) {
 
 			int userSelection = JOptionPane.showConfirmDialog(null, "Really delete? " + selectedFileSystemNode);
@@ -181,12 +187,14 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 					logger.error(e.getMessage(), e);
 				}
 			}
+			
 		} else if (StringUtils.equalsIgnoreCase(actionEvent.getActionCommand(), "Transfer")) {
+			
 			logger.info("Transfer " + selectedFileSystemNode);
 
 			if (CollectionUtils.isNotEmpty(eventListener)) {
 				for (EventListener tempEventListener : eventListener) {
-					tempEventListener.startEvent("TRANSFER_LEFT_RIGHT", selectedFileSystemNode);
+					tempEventListener.startEvent(transferEventKey, selectedFileSystemNode);
 				}
 			}
 
@@ -196,11 +204,12 @@ public class FileSystemListController extends MouseAdapter implements ListSelect
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			}
+			
 		}
 	}
 
 	private void delete(FileSystemNode fileSystemNode) throws Exception {
-		if (fileSystemNode.getType() != FileSystemObjectType.FILE) {
+		if (fileSystemNode == null || fileSystemNode.getType() != FileSystemObjectType.FILE) {
 			logger.info("Selected node is not a file! Only files can be deleted!");
 			return;
 		}

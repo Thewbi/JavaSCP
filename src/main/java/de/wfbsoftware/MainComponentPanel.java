@@ -12,17 +12,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
+@SuppressWarnings("serial")
 public class MainComponentPanel extends JPanel {
 	
 	private FileSystemListController leftFileSystemListController;
 	
 	private FileSystemListController rightFileSystemListController;
 
-	public MainComponentPanel() {
-//		super(new BorderLayout());
-//		super(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
-	}
-	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setup() {
 
 		JList leftList = new JList(leftFileSystemListController.getListModel());
@@ -48,6 +45,7 @@ public class MainComponentPanel extends JPanel {
         topLeftPanel.add(leftTransferButton);
         
         JButton leftDeleteButton = new JButton("Delete");
+        leftDeleteButton.addActionListener(leftFileSystemListController);
         topLeftPanel.add(leftDeleteButton);
         
         JPanel leftPanel = new JPanel();
@@ -74,9 +72,7 @@ public class MainComponentPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
         add(leftPanel);
         add(rightPanel);
-
-//		add(leftListScrollPane, BorderLayout.WEST);
-//		add(rightListScrollPane, BorderLayout.EAST);
+        
 	}
 
 	public void setLeftFileSystemListController(FileSystemListController leftFileSystemListController) {

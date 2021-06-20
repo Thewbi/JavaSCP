@@ -4,6 +4,10 @@ public enum FileSystemObjectType {
 	
 	FILE,
 	
-	FOLDER
+	FOLDER,
+	
+	LINK,
+	
+	UNKNOWN
 
 }

@@ -1,7 +1,15 @@
 package de.wfbsoftware.windows;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
 import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jcraft.jsch.Session;
 
@@ -11,6 +19,8 @@ import de.wfbsoftware.filesystem.FileSystemObjectType;
 import de.wfbsoftware.filesystem.FileSystemService;
 
 public class WindowsFileSystemService implements FileSystemService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(WindowsFileSystemService.class);
 
 	@Override
 	public FileSystemNode list(Session session, FileSystemNode fileSystemNode) throws Exception {
@@ -87,7 +97,26 @@ public class WindowsFileSystemService implements FileSystemService {
 
 	@Override
 	public void delete(Session session, FileSystemNode fileSystemNode) throws Exception {
-		throw new RuntimeException("Not implemented yet!");
+		final String objectName = fileSystemNode.getPwd();
+		try
+        {
+            Files.deleteIfExists(Paths.get(objectName));
+        }
+        catch(NoSuchFileException e)
+        {
+        	logger.error(e.getMessage(), e);
+            logger.error("No such file/directory exists");
+        }
+        catch(DirectoryNotEmptyException e)
+        {
+        	logger.error(e.getMessage(), e);
+            logger.error("Directory is not empty.");
+        }
+        catch(IOException e)
+        {
+        	logger.error(e.getMessage(), e);
+            logger.error("Invalid permissions.");
+        }
 	}
 
 }

@@ -49,6 +49,7 @@ public class Main {
 				FileSystemService leftFileSystemService = new WindowsFileSystemService();
 
 				FileSystemListController leftFileSystemListController = new FileSystemListController();
+				leftFileSystemListController.setTransferEventKey(EventKeys.TRANSFER_LEFT_RIGHT_KEY);
 				leftFileSystemListController.setHome(System.getProperty("user.dir"));
 				leftFileSystemListController.setFileSystemService(leftFileSystemService);
 				leftFileSystemListController.buildModel();
@@ -83,6 +84,7 @@ public class Main {
 					logger.info("Connecting done.");
 
 					FileSystemListController rightFileSystemListController = new FileSystemListController();
+					rightFileSystemListController.setTransferEventKey(EventKeys.TRANSFER_RIGHT_LEFT_KEY);
 					rightFileSystemListController.setHome(".");
 					rightFileSystemListController.setSession(session);
 					rightFileSystemListController.setFileSystemService(rightFileSystemService);
@@ -94,18 +96,20 @@ public class Main {
 					mainComponentPanel.setRightFileSystemListController(rightFileSystemListController);
 					mainComponentPanel.setup();
 				} catch (JSchException e) {
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				} catch (IOException e) {
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}
 
 				MainFrame frame = new MainFrame();
 				frame.setTitle("Java SCP");
 				frame.setSize(640, 480);
 				frame.setResizable(true);
-				frame.setLocation(50, 50);
+//				frame.setLocation(50, 50);
+				frame.setLocationRelativeTo(null);
 				frame.setContentPane(mainComponentPanel);
 
+//				frame.pack();
 				frame.setVisible(true);
 				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

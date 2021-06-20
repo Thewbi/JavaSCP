@@ -20,7 +20,7 @@ public class DefaultEventListener implements EventListener {
 	@Override
 	public void startEvent(String event, Object... args) {
 
-		if (StringUtils.equalsIgnoreCase(event, "TRANSFER_LEFT_RIGHT")) {
+		if (StringUtils.equalsIgnoreCase(EventKeys.TRANSFER_LEFT_RIGHT_KEY, event)) {
 
 			FileSystemNode leftSelectedFileSystemNode = leftFileSystemListController.getSelectedFileSystemNode();
 			logger.info("FROM " + leftSelectedFileSystemNode.getPwd());
@@ -29,14 +29,33 @@ public class DefaultEventListener implements EventListener {
 			logger.info("TO " + rightCurrentFileSystemNode.getPwd());
 
 			try {
+				boolean fromIsRemote = false;
 				sshService.transfer(rightFileSystemListController.getSession(), leftSelectedFileSystemNode,
-						rightCurrentFileSystemNode);
+						rightCurrentFileSystemNode, fromIsRemote);
 
 				rightFileSystemListController.reload();
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 
+		} if (StringUtils.equalsIgnoreCase(EventKeys.TRANSFER_RIGHT_LEFT_KEY, event)) {
+		
+			FileSystemNode leftSelectedFileSystemNode = leftFileSystemListController.getCurrentFileSystemNode();
+			logger.info("TO " + leftSelectedFileSystemNode.getPwd());
+
+			FileSystemNode rightCurrentFileSystemNode = rightFileSystemListController.getSelectedFileSystemNode();
+			logger.info("FROM " + rightCurrentFileSystemNode.getPwd());
+
+			try {
+				boolean fromIsRemote = true;
+				sshService.transfer(rightFileSystemListController.getSession(), rightCurrentFileSystemNode,
+						leftSelectedFileSystemNode, fromIsRemote);
+
+				leftFileSystemListController.reload();
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+			
 		}
 
 	}
